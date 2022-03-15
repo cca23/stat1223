@@ -1,0 +1,58 @@
+---
+title: "Disney Movie Dataset Cleaned"
+author: "Caitlin Alano"
+date: "4/3/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Load Packages
+```{r}
+library(dplyr)
+library(mdsr)
+library(tidyverse)
+library(tidyr)
+library(ggplot2)
+```
+
+# Read and view csv file
+```{r}
+library(readr)
+disneyDataset <- read_csv("/Users/caitlinalano/Downloads/DisneyMoviesDataset.csv")
+View(disneyDataset)
+```
+
+# Choose Necessary Columns and Eliminate Rows with Missing Values
+```{r}
+disneyDataset2 <- disneyDataset %>%
+  mutate(`Budget(Millions US Dollars)` = `Budget (float)`/1000000) %>%
+  select(title, `Release date (datetime)`, rotten_tomatoes, `Budget(Millions US Dollars)`, `Running time (int)`) %>%
+  na.omit(disneyDataset)%>%
+  rename(`Movie Title` = `title`, `Rotten Tomatoes Rating` = rotten_tomatoes, `Movie Length (minutes)` = `Running time (int)`) %>%
+  separate(`Release date (datetime)`, c("Release Year", "Month", "Day"), sep = "-") %>%
+  mutate (`Movie Length (Hours)` = `Movie Length (minutes)`/60)%>%
+  select(-`Movie Length (minutes)`)
+disneyDataset2
+```
+
+# Convert Variable Type for Response from Character to Numeric
+```{r}
+  disneyDataset2$`Rotten Tomatoes Rating` <- as.numeric(sub("%","",disneyDataset2$`Rotten Tomatoes Rating`))/100
+  disneyDataset2$`Release Year` <- as.numeric(disneyDataset2$`Release Year`)
+  
+disneyDataset3 <- disneyDataset2 %>%
+  mutate(`Decade` = `Release Year` - (`Release Year` %% 10))
+disneyDataset3
+  
+  disneyDataset4 <- subset(disneyDataset3, select = -`Month`)
+  disneyDataset5 <- subset(disneyDataset4, select = -`Day`)
+  disneyDataset5
+```
+
+# Saving Cleaned Dataset to CSV File
+```{r}
+write.csv(disneyDataset5, "DisneyDatasetCleaned.csv", row.names = FALSE)
+```
